@@ -24,6 +24,8 @@
         
           <!-- This is where the form will go -->
           {{render_form(form)}}
+          {{ ckeditor.load() }}
+          {{ ckeditor.config(name='body') }}
 
       </div>
     </div>
