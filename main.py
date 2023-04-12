@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
@@ -10,7 +10,7 @@ from flask_ckeditor import CKEditor, CKEditorField
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
-Bootstrap(app)
+bootstrap = Bootstrap5(app)
 
 ##CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
@@ -63,6 +63,11 @@ def about():
 def contact():
     return render_template("contact.html")
 
+@app.route("/newpost")
+def new_post():
+    new_post_form = CreatePostForm()
+    return render_template("make-post.html", form=new_post_form)
+
 if __name__ == "__main__":
     db.create_all()
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
