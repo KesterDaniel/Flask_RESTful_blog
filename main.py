@@ -82,12 +82,15 @@ def new_post():
         db.session.add(new_blog_post)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("make-post.html", form=new_post_form)
+    return render_template("make-post.html", form=new_post_form, edit=False)
 
 
 @app.route("/editpost/<int:post_id>", methods=["GET", "POST"])
 def edit_post(post_id):
-    return "ME EDIT"
+    edit_post_form = CreatePostForm()
+    if edit_post_form.validate_on_submit():
+        pass
+    return render_template("make-post.html", edit=True, form=edit_post_form)
 
 if __name__ == "__main__":
     db.create_all()
