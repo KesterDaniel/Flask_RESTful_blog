@@ -96,7 +96,15 @@ def edit_post(post_id):
         body = post.body
     )
     if edit_post_form.validate_on_submit():
-        pass
+        post.title = edit_post_form.title.data
+        post.subtitle = edit_post_form.subtitle.data
+        post.img_url = edit_post_form.img_url.data
+        post.author = edit_post_form.author.data
+        post.body = edit_post_form.body.data
+        db.session.commit()
+
+        return redirect(url_for("show_post", index=post_id))
+
     return render_template("make-post.html", edit=True, form=edit_post_form)
 
 if __name__ == "__main__":

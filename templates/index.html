@@ -32,6 +32,7 @@
           <p class="post-meta">Posted by
             <a href="#">{{post.author}}</a>
             on {{post.date}}</p>
+            <a class="btn btn-primary" href="{{url_for('delete', post_id=post.id)}}"
         </div>
         <hr>
         {% endfor %}
