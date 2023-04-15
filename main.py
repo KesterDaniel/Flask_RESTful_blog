@@ -3,17 +3,20 @@ from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, URL
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin, LoginManager, login_remembered, login_user, logout_user, current_user
+from wtforms import StringField, SubmitField, EmailField, PasswordField
+from wtforms.validators import DataRequired, URL, Email
 from flask_ckeditor import CKEditor, CKEditorField
 import datetime as dt
-
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
 bootstrap = Bootstrap5(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 ##CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
@@ -21,7 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 app.app_context().push()
 
-##CONFIGURE TABLE
+##CONFIGURE BLOG TABLE
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(250), unique=True, nullable=False)
@@ -32,7 +35,24 @@ class BlogPost(db.Model):
     img_url = db.Column(db.String(250), nullable=False)
 
 
+# CONFIGURE USER TABLE
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(100))
+
 ##WTForm
+class CreateRegisterForm(FlaskForm):
+    email = EmailField("Email", validators=[DataRequired(), Email()])
+    name = StringField("Name", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+
+class CreateLoginForm(FlaskForm):
+    email = EmailField("Email", validators=[DataRequired(), Email()])
+    password = PasswordField("Password", validators=[DataRequired()])
+
+
 class CreatePostForm(FlaskForm):
     title = StringField("Blog Post Title", validators=[DataRequired()])
     subtitle = StringField("Subtitle", validators=[DataRequired()])
@@ -46,6 +66,13 @@ class CreatePostForm(FlaskForm):
 def get_all_posts():
     posts = db.session.query(BlogPost).all()
     return render_template("index.html", all_posts=posts)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    login_form = CreateLoginForm()
+    if login_form.validate_on_submit():
+        pass
+    return render_template("login.html", form=login_form)
 
 
 @app.route("/post/<int:index>")
