@@ -17,6 +17,21 @@
 <div class="container mt-5">
   <div class="row">
     <div class="col-md-6 mx-auto">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages%}
+            <p class="msg" style="color: red; text-align: center;">{{message}}</p>
+          {% endfor %}
+          <script>
+            setTimeout(function() {
+                var flashes = document.querySelector('.msg');
+                  if (flashes) {
+                    flashes.remove();
+                  }
+            }, 5000);
+          </script>
+        {% endif %}
+      {% endwith %}
       {{ render_form(form) }}
     </div>
   </div>
