@@ -3,14 +3,23 @@
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     {% for message in messages %}
-      <div class="alert alert-success" role="alert" id="myAlert">
-        {{ message }}
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 mx-auto">
+            <div class="alert alert-success position-fixed" style="z-index: 9999; top: 20px;" role="alert" id="myAlert">
+              {{ message }}
+            </div>
+          </div>
+        </div>
       </div>
     {% endfor %}
     <script>
       setTimeout(function() {
-        document.getElementById("myAlert").style.display = "none";
-      }, 4000);
+          var flashes = document.querySelector('.alert');
+            if (flashes) {
+              flashes.remove();
+            }
+      }, 5000); // Remove the message after 5 seconds (5000 milliseconds)
     </script>
   {% endif %}
 {% endwith %}

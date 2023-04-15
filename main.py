@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
@@ -75,7 +75,16 @@ def get_all_posts():
 def login():
     login_form = CreateLoginForm()
     if login_form.validate_on_submit():
-        pass
+        user = User.query.filter_by(email=login_form.email.data).first()
+        if user is not None:
+            password_match = check_password_hash(user.password, login_form.password.data)
+            if password_match:
+                login_user(user)
+                session["logged_in"] = True
+                flash(f"Welcome back, {user.name}")
+                return redirect(url_for("get_all_posts"))
+        flash(f"Invalid credentials")
+        return redirect(url_for(request.endpoint))
     return render_template("login.html", form=login_form)
 
 @app.route("/register", methods=["GET", "POST"])
