@@ -1,10 +1,10 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, session, flash
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from flask_wtf import FlaskForm
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, LoginManager, login_remembered, login_user, logout_user, current_user
+from flask_login import UserMixin, LoginManager, login_required, login_user, logout_user, current_user
 from wtforms import StringField, SubmitField, EmailField, PasswordField
 from wtforms.validators import DataRequired, URL, Email
 from flask_ckeditor import CKEditor, CKEditorField
@@ -82,12 +82,30 @@ def login():
 def register():
     register_form = CreateRegisterForm()
     if register_form.validate_on_submit():
-        pass
+        new_user = User(
+            name = register_form.name.data,
+            email = register_form.email.data,
+            password = generate_password_hash(
+                register_form.password.data,
+                method = "pbkdf2:sha256",
+                salt_length = 8
+            )
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user)
+        session["logged_in"] = True
+        flash("Welcome to Kester Blog")
+        return redirect(url_for("get_all_posts"))
     return render_template("register.html", form=register_form)
 
 @app.route("/logout")
+@login_required
 def logout():
-    pass
+    logout_user()
+    session.pop("logged_in", None)
+    return redirect(url_for("get_all_posts"))
+
 
 @app.route("/post/<int:index>")
 def show_post(index):
