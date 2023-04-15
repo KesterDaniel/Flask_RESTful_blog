@@ -78,9 +78,12 @@ def login():
         pass
     return render_template("login.html", form=login_form)
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    pass
+    register_form = CreateRegisterForm()
+    if register_form.validate_on_submit():
+        pass
+    return render_template("register.html", form=register_form)
 
 @app.route("/logout")
 def logout():
