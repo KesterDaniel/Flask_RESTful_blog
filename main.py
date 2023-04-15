@@ -47,11 +47,12 @@ class CreateRegisterForm(FlaskForm):
     email = EmailField("Email", validators=[DataRequired(), Email()])
     name = StringField("Name", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Register")
 
 class CreateLoginForm(FlaskForm):
     email = EmailField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
-
+    login = SubmitField("Login")
 
 class CreatePostForm(FlaskForm):
     title = StringField("Blog Post Title", validators=[DataRequired()])
@@ -61,6 +62,9 @@ class CreatePostForm(FlaskForm):
     body = CKEditorField("Blog Content", validators=[DataRequired()])
     submit = SubmitField("Submit Post")
 
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, str(user_id))
 
 @app.route('/')
 def get_all_posts():
@@ -74,6 +78,13 @@ def login():
         pass
     return render_template("login.html", form=login_form)
 
+@app.route("/register")
+def register():
+    pass
+
+@app.route("/logout")
+def logout():
+    pass
 
 @app.route("/post/<int:index>")
 def show_post(index):
