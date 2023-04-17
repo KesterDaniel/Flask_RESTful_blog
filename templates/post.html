@@ -10,7 +10,7 @@
 					<h1>{{post.title}}</h1>
 					<h2 class="subheading">{{post.subtitle}}</h2>
 					<span class="meta">Posted by
-              <a href="#">{{post.author}}</a>
+              <a href="/about">{{post.author}}</a>
               on {{post.date}}</span>
           </div>
         </div>
@@ -26,11 +26,13 @@
           <p>
             {{post.body|safe}}
           </p>
-           <hr>
-           <div class="clearfix">
-          <a class="btn btn-primary float-right" href="{{url_for('edit_post', post_id=post.id)}}">Edit Post</a>
+          <hr>
+          {% if current_user.is_authenticated and current_user.id == 1%}
+            <div class="clearfix">
+              <a class="btn btn-primary float-right" href="{{url_for('edit_post', post_id=post.id)}}">Edit Post</a>
+            </div>
+          {% endif %}
         </div>
-          </div>
       </div>
     </div>
   </article>
