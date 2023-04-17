@@ -81,7 +81,7 @@ def load_user(user_id):
 @app.route('/')
 def get_all_posts():
     posts = db.session.query(BlogPost).all()
-    return render_template("index.html", all_posts=posts)
+    return render_template("index.html", all_posts=posts, current_user=current_user)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
