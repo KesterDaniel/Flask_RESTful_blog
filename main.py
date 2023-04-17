@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_bootstrap import Bootstrap5
+from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from flask_wtf import FlaskForm
@@ -18,11 +19,22 @@ bootstrap = Bootstrap5(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+login_manager.login_view = "login"
+
 ##CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 app.app_context().push()
+
+
+def is_admin(function):
+    @wraps(function)
+    def function_wrapper(*args, **kwargs):
+        if current_user.is_authenticated and current_user.id == 1:
+            return function(*args, **kwargs)
+        return "Unauthorized access"
+    return function_wrapper
 
 ##CONFIGURE BLOG TABLE
 class BlogPost(db.Model):
@@ -108,6 +120,7 @@ def register():
         return redirect(url_for("get_all_posts"))
     return render_template("register.html", form=register_form)
 
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -117,6 +130,7 @@ def logout():
 
 
 @app.route("/post/<int:index>")
+@login_required
 def show_post(index):
     requested_post = None
     posts = db.session.query(BlogPost).all()
@@ -136,6 +150,8 @@ def contact():
     return render_template("contact.html")
 
 @app.route("/newpost", methods=["GET", "POST"])
+# @login_required
+@is_admin
 def new_post():
     new_post_form = CreatePostForm()
     if new_post_form.validate_on_submit():
@@ -154,6 +170,8 @@ def new_post():
 
 
 @app.route("/editpost/<int:post_id>", methods=["GET", "POST"])
+# @login_required
+@is_admin
 def edit_post(post_id):
     post = BlogPost.query.filter_by(id=post_id).first()
     edit_post_form = CreatePostForm(
@@ -176,6 +194,8 @@ def edit_post(post_id):
     return render_template("make-post.html", edit=True, form=edit_post_form)
 
 @app.route("/delete/<int:post_id>")
+# @login_required
+@is_admin
 def delete(post_id):
     post = BlogPost.query.filter_by(id=post_id).first()
     db.session.delete(post)
