@@ -9,7 +9,7 @@ from flask_wtf import FlaskForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, LoginManager, login_required, login_user, logout_user, current_user
 from wtforms import StringField, SubmitField, EmailField, PasswordField
-from wtforms.validators import DataRequired, URL, Email
+from wtforms.validators import DataRequired, URL, Email, Length
 from flask_ckeditor import CKEditor, CKEditorField
 import datetime as dt
 
@@ -78,10 +78,14 @@ class CreateLoginForm(FlaskForm):
 class CreatePostForm(FlaskForm):
     title = StringField("Blog Post Title", validators=[DataRequired()])
     subtitle = StringField("Subtitle", validators=[DataRequired()])
-    author = StringField("Your Name", validators=[DataRequired()])
     img_url = StringField("Blog Image URL", validators=[DataRequired(), URL()])
     body = CKEditorField("Blog Content", validators=[DataRequired()])
     submit = SubmitField("Submit Post")
+
+class CommentForm(FlaskForm):
+    body = CKEditorField("Comment", validators=[Length(min=10)])
+    submit = SubmitField("Add Comment")
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -142,11 +146,12 @@ def logout():
 @login_required
 def show_post(index):
     requested_post = None
+    form = CommentForm()
     posts = db.session.query(BlogPost).all()
     for blog_post in posts:
         if blog_post.id == index:
             requested_post = blog_post
-    return render_template("post.html", post=requested_post)
+    return render_template("post.html", post=requested_post, form=form)
 
 
 @app.route("/about")
