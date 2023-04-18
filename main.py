@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, abort, request, redirect, url_for, session, flash
 from flask_bootstrap import Bootstrap5
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Table, Integer, Column, ForeignKey
+from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.exc import IntegrityError
 from flask_wtf import FlaskForm
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -11,6 +13,7 @@ from wtforms.validators import DataRequired, URL, Email
 from flask_ckeditor import CKEditor, CKEditorField
 import datetime as dt
 
+Base = declarative_base()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
@@ -33,26 +36,32 @@ def is_admin(function):
     def function_wrapper(*args, **kwargs):
         if current_user.is_authenticated and current_user.id == 1:
             return function(*args, **kwargs)
-        return "Unauthorized access"
+        return abort(403)
     return function_wrapper
 
+
+# CONFIGURE USER TABLE
+class User(UserMixin, db.Model, Base):
+    __tablename__ =  "user"
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(100))
+    posts = relationship("BlogPost", back_populates="author")
+
+
 ##CONFIGURE BLOG TABLE
-class BlogPost(db.Model):
+class BlogPost(db.Model, Base):
+    __tablename__ = "post"
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(250), unique=True, nullable=False)
     subtitle = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
-    author = db.Column(db.String(250), nullable=False)
+    author = relationship("User", back_populates="posts")
     img_url = db.Column(db.String(250), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
-
-# CONFIGURE USER TABLE
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(100))
-    name = db.Column(db.String(100))
 
 ##WTForm
 class CreateRegisterForm(FlaskForm):
@@ -158,7 +167,7 @@ def new_post():
         new_blog_post = BlogPost(
             title = new_post_form.title.data,
             subtitle = new_post_form.subtitle.data,
-            author = new_post_form.author.data,
+            author = current_user,
             date = dt.datetime.now().date().strftime("%B %d, %Y"),
             img_url = new_post_form.img_url.data,
             body = new_post_form.body.data

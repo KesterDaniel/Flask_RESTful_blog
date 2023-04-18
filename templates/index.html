@@ -54,7 +54,7 @@
             </h3>
           </a>
           <p class="post-meta">Posted by
-            <a href="#">{{post.author}}</a>
+            <a href="#">{{post.author.name}}</a>
             on {{post.date}}</p>
             {% if current_user.is_authenticated and current_user.id == 1%}
               <a class="btn btn-primary" href="{{url_for('delete', post_id=post.id)}}">delete</a>
