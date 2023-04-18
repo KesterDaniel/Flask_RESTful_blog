@@ -5,13 +5,11 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Table, Integer, Column, ForeignKey
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.exc import IntegrityError
-from flask_wtf import FlaskForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, LoginManager, login_required, login_user, logout_user, current_user
-from wtforms import StringField, SubmitField, EmailField, PasswordField
-from wtforms.validators import DataRequired, URL, Email, Length
 from flask_ckeditor import CKEditor, CKEditorField
 import datetime as dt
+from forms import CreateRegisterForm, CommentForm, CreateLoginForm, CreatePostForm
 
 Base = declarative_base()
 
@@ -72,30 +70,6 @@ class Comment(db.Model, Base):
     author = relationship("User", back_populates="comments")
     blog_post_id = db.Column(db.Integer, db.ForeignKey("post.id"))
     blog_post = relationship("BlogPost", back_populates="comments")
-
-
-##WTForm
-class CreateRegisterForm(FlaskForm):
-    email = EmailField("Email", validators=[DataRequired(), Email()])
-    name = StringField("Name", validators=[DataRequired()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Register")
-
-class CreateLoginForm(FlaskForm):
-    email = EmailField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    login = SubmitField("Login")
-
-class CreatePostForm(FlaskForm):
-    title = StringField("Blog Post Title", validators=[DataRequired()])
-    subtitle = StringField("Subtitle", validators=[DataRequired()])
-    img_url = StringField("Blog Image URL", validators=[DataRequired(), URL()])
-    body = CKEditorField("Blog Content", validators=[DataRequired()])
-    submit = SubmitField("Submit Post")
-
-class CommentForm(FlaskForm):
-    body = CKEditorField("Comment", validators=[Length(min=10)])
-    submit = SubmitField("Add Comment")
 
 
 @login_manager.user_loader
