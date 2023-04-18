@@ -48,6 +48,7 @@ class User(UserMixin, db.Model, Base):
     password = db.Column(db.String(100))
     name = db.Column(db.String(100))
     posts = relationship("BlogPost", back_populates="author")
+    comments = relationship("Comment", back_populates="author")
 
 
 ##CONFIGURE BLOG TABLE
@@ -61,6 +62,16 @@ class BlogPost(db.Model, Base):
     author = relationship("User", back_populates="posts")
     img_url = db.Column(db.String(250), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    comments = relationship("Comment", back_populates="blog_post")
+
+class Comment(db.Model, Base):
+    __tablename__ = "comment"
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text, nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author = relationship("User", back_populates="comments")
+    blog_post_id = db.Column(db.Integer, db.ForeignKey("post.id"))
+    blog_post = relationship("BlogPost", back_populates="comments")
 
 
 ##WTForm
@@ -142,11 +153,25 @@ def logout():
     return redirect(url_for("get_all_posts"))
 
 
-@app.route("/post/<int:index>")
-@login_required
+@app.route("/post/<int:index>", methods=["GET", "POST"])
 def show_post(index):
     requested_post = None
     form = CommentForm()
+    if form.validate_on_submit():
+        if not current_user.is_authenticated:
+            flash("You have to be logged in to comment")
+            return redirect(url_for("login"))
+        else:
+            post = BlogPost.query.get(index)
+            author = current_user
+            new_comment = Comment(
+                body = form.body.data,
+                author = author,
+                blog_post = post
+            )
+            db.session.add(new_comment)
+            db.session.commit()
+            return redirect(url_for(request.endpoint, index=index))
     posts = db.session.query(BlogPost).all()
     for blog_post in posts:
         if blog_post.id == index:
@@ -164,7 +189,6 @@ def contact():
     return render_template("contact.html")
 
 @app.route("/newpost", methods=["GET", "POST"])
-# @login_required
 @is_admin
 def new_post():
     new_post_form = CreatePostForm()
@@ -184,7 +208,6 @@ def new_post():
 
 
 @app.route("/editpost/<int:post_id>", methods=["GET", "POST"])
-# @login_required
 @is_admin
 def edit_post(post_id):
     post = BlogPost.query.filter_by(id=post_id).first()
@@ -208,7 +231,6 @@ def edit_post(post_id):
     return render_template("make-post.html", edit=True, form=edit_post_form)
 
 @app.route("/delete/<int:post_id>")
-# @login_required
 @is_admin
 def delete(post_id):
     post = BlogPost.query.filter_by(id=post_id).first()
